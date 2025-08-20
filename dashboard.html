@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bus Dashboard</title>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { text-align: center; }
+    .bus-card { border: 1px solid #444; margin: 10px 0; border-radius: 8px; }
+    .bus-header { background: #444; color: white; padding: 10px; cursor: pointer; }
+    .bus-content { display: none; padding: 10px; }
+    button { margin: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Bus Dashboard</h1>
+
+  <label for="busSelect">Select Bus: </label>
+  <select id="busSelect">
+    <option value="">-- Select Bus --</option>
+    <script>
+      for (let i = 1; i <= 12; i++) {
+        document.write(`<option value="${i}">Bus ${i}</option>`);
+      }
+    </script>
+  </select>
+  <br><br>
+
+  <input type="file" id="fileInput" accept="image/*">
+  <button onclick="uploadAttendee()">Upload Attendee</button>
+
+  <h2>Bus Summary</h2>
+  <div id="busSummary"></div>
+
+  <script>
+    // Supabase config
+    const SUPABASE_URL = "https://pgueclxnopnuyjudnepz.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWVjbHhub3BudXlqdWRuZXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1ODg2NDcsImV4cCI6MjA3MTE2NDY0N30.kCP42rgN1EBQ-bX6n9Rw4RAI5LEuJ41RrXNVPXXnfHc";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function uploadAttendee() {
+      let busNumber = document.getElementById("busSelect").value;
+      let file = document.getElementById("fileInput").files[0];
+      if (!busNumber || !file) { alert("Select bus and file first!"); return; }
+
+      // Upload image to Supabase Storage
+      let { data, error } = await supabase.storage
+        .from("attendees")
+        .upload(`bus${busNumber}/${file.name}`, file, { upsert: true });
+
+      if (error) { alert("Upload error!"); return; }
+
+      // Insert into DB
+      await supabase.from("scans").insert([{
+        name: file.name.split(".")[0],
+        status: "not_scanned",
+        bus_number: busNumber,
+        created_at: new Date().toISOString()
+      }]);
+
+      loadSummary();
+    }
+
+    async function loadSummary() {
+      document.getElementById("busSummary").innerHTML = "";
+      for (let i = 1; i <= 12; i++) {
+        let { data, error } = await supabase
+          .from("scans")
+          .select("*")
+          .eq("bus_number", i);
+
+        let card = document.createElement("div");
+        card.className = "bus-card";
+
+        let header = document.createElement("div");
+        header.className = "bus-header";
+        header.innerText = `Bus ${i} (${data.length} attendees)`;
+        header.onclick = () => {
+          content.style.display = content.style.display === "block" ? "none" : "block";
+        };
+
+        let content = document.createElement("div");
+        content.className = "bus-content";
+
+        if (data.length > 0) {
+          let deleteAllBtn = document.createElement("button");
+          deleteAllBtn.innerText = "Delete All";
+          deleteAllBtn.onclick = async () => {
+            await supabase.from("scans").delete().eq("bus_number", i);
+            loadSummary();
+          };
+          content.appendChild(deleteAllBtn);
+
+          data.forEach(att => {
+            let row = document.createElement("div");
+            row.innerHTML = `${att.name} - ${att.status} 
+              <button onclick="deleteAttendee(${att.id})">Delete</button>`;
+            content.appendChild(row);
+          });
+        } else {
+          content.innerHTML = "<i>No attendees yet</i>";
+        }
+
+        card.appendChild(header);
+        card.appendChild(content);
+        document.getElementById("busSummary").appendChild(card);
+      }
+    }
+
+    async function deleteAttendee(id) {
+      await supabase.from("scans").delete().eq("id", id);
+      loadSummary();
+    }
+
+    loadSummary();
+  </script>
+</body>
+</html>
