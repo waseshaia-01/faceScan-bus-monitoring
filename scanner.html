@@ -12,21 +12,26 @@
       text-align: center;
       margin: 20px;
     }
+    header {
+      margin-bottom: 20px;
+    }
     video {
       border: 2px solid #333;
       border-radius: 10px;
       margin-top: 20px;
     }
-    button {
+    .btn {
+      display: inline-block;
       margin: 10px;
-      padding: 10px 20px;
+      padding: 12px 25px;
+      font-size: 18px;
       background: #007BFF;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
     }
-    button:hover {
+    .btn:hover {
       background: #0056b3;
     }
     #status {
@@ -37,11 +42,14 @@
   </style>
 </head>
 <body>
+  <header>
+    <!-- ✅ Button is clearly at the top -->
+    <button class="btn" onclick="window.location.href='dashboard.html'">
+      🚍 Go to Dashboard
+    </button>
+  </header>
+
   <h1>Bus Face Scanner</h1>
-
-  <!-- ✅ Button to go to dashboard -->
-  <button onclick="window.location.href='dashboard.html'">Go to Dashboard</button>
-
   <video id="video" width="500" height="400" autoplay muted></video>
   <div id="status">Loading face recognition models...</div>
 
