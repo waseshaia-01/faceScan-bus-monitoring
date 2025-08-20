@@ -4,100 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bus Face Scanner</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="https://unpkg.com/face-api.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      background: #f4f4f9;
-    }
-    h1 {
-      margin-bottom: 20px;
+      text-align: center;
+      margin: 20px;
     }
     video {
       border: 2px solid #333;
-      border-radius: 8px;
-      width: 320px;
-      height: 240px;
-      background: black;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
     }
     #status {
       margin-top: 15px;
       font-weight: bold;
       color: green;
     }
-    .nav-btn {
-      margin-top: 25px;
-      padding: 10px 20px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .nav-btn:hover {
-      background: #0056b3;
-    }
   </style>
 </head>
 <body>
   <h1>Bus Face Scanner</h1>
-  <video id="camera" autoplay></video>
-  <div id="status">Waiting for scan...</div>
 
-  <!-- Navigation Button -->
-  <button class="nav-btn" onclick="goToDashboard()">Go to Dashboard</button>
+  <!-- ✅ Button to go to dashboard -->
+  <button onclick="window.location.href='dashboard.html'">Go to Dashboard</button>
 
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+  <video id="video" width="500" height="400" autoplay muted></video>
+  <div id="status">Loading face recognition models...</div>
 
+  <script>
     const supabaseUrl = "https://pgueclxnopnuyjudnepz.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWVjbHhub3BudXlqdWRuZXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1ODg2NDcsImV4cCI6MjA3MTE2NDY0N30.kCP42rgN1EBQ-bX6n9Rw4RAI5LEuJ41RrXNVPXXnfHc";
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    const video = document.getElementById('camera');
-    const statusEl = document.getElementById('status');
+    const video = document.getElementById('video');
+    const status = document.getElementById('status');
 
-    // Access camera
-    async function initCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
-      } catch (err) {
-        statusEl.textContent = "Camera access denied!";
-        statusEl.style.color = "red";
-      }
-    }
-    initCamera();
-
-    // For demo: simulate a face scan
-    async function fakeScan(name = "John Doe", bus_number = 1) {
-      const { data, error } = await supabase.from("scans").insert([
-        { name, status: "scanned", bus_number }
-      ]);
-
-      if (error) {
-        statusEl.textContent = "Error saving scan!";
-        statusEl.style.color = "red";
-        console.error(error);
-      } else {
-        statusEl.textContent = `${name} scanned successfully!`;
-        statusEl.style.color = "green";
-      }
+    async function setupCamera() {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+      video.srcObject = stream;
     }
 
-    // Simulate scan every 10 sec (replace with real face recognition later)
-    setInterval(() => fakeScan("Passenger " + Math.floor(Math.random() * 100), 1), 10000);
-
-    // Redirect function
-    function goToDashboard() {
-      window.location.href = "dashboard.html";
+    async function loadModels() {
+      await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+      status.textContent = "Scanner ready! Detecting faces...";
     }
+
+    setupCamera().then(loadModels);
   </script>
 </body>
 </html>
