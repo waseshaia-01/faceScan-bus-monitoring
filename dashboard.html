@@ -38,7 +38,7 @@
     // Supabase config
     const SUPABASE_URL = "https://pgueclxnopnuyjudnepz.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWVjbHhub3BudXlqdWRuZXB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1ODg2NDcsImV4cCI6MjA3MTE2NDY0N30.kCP42rgN1EBQ-bX6n9Rw4RAI5LEuJ41RrXNVPXXnfHc";
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function uploadAttendee() {
       let busNumber = document.getElementById("busSelect").value;
@@ -118,3 +118,4 @@
   </script>
 </body>
 </html>
+
